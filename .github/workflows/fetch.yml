@@ -5,7 +5,7 @@ on:
     - cron: "*/15 16-23,0-5 * * *"   # UTC: about 11 AM to 1 AM ET
   workflow_dispatch:
   push:
-    paths: ["sbr_snap.py"]   # run once when the snapshot script changes
+    paths: ["sbr_snap.py", "props_probe.py"]   # run once when the snapshot script changes
 
 permissions:
   contents: write
@@ -31,6 +31,10 @@ jobs:
       - name: Fetch
         run: python fetch.py
 
+      - name: Props probe (one-off; never fails the run)
+        if: github.event_name == 'push'
+        run: test -f props_probe.py && python props_probe.py || echo "no probe"
+
       - name: Snapshot Sportsbook Review (grading only; never fails the run)
         run: python sbr_snap.py || echo "sbr snapshot failed"
 
@@ -38,7 +42,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A reports text attempts.csv sbr 2>/dev/null || git add -A
+          git add -A reports text attempts.csv sbr probe 2>/dev/null || git add -A
           if git diff --cached --quiet; then
             echo "nothing changed"
             exit 0
