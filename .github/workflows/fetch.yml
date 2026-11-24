@@ -5,7 +5,7 @@ on:
     - cron: "*/15 16-23,0-5 * * *"   # UTC: about 11 AM to 1 AM ET
   workflow_dispatch:
   push:
-    paths: ["sbr_snap.py", "props_snap.py"]   # run once when the snapshot script changes
+    paths: ["sbr_snap.py", "props_snap.py", "sbr_probe.py"]   # run once when the snapshot script changes
 
 permissions:
   contents: write
@@ -38,6 +38,10 @@ jobs:
 
       - name: Snapshot Sportsbook Review (grading only; never fails the run)
         run: python sbr_snap.py || echo "sbr snapshot failed"
+
+      - name: One-off past-date probe (only on a push that changes it)
+        run: |
+          if [ "${{ github.event_name }}" = "push" ] && [ -f sbr_probe.py ]; then python sbr_probe.py || echo "probe failed"; fi
 
       - name: Commit and push if something changed
         run: |
