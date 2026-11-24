@@ -7,7 +7,7 @@ lines; it reads no model price.
 Run by .github/workflows/backfill.yml (its own workflow, so it never holds up the injury-report fetch). Each run
 reads up to BATCH dates not yet done, 3 s apart, oldest first, and stops early if close to TIME_LIMIT. When every
 date is done it does nothing. Dates that fail (no page, no embedded data) are retried on later runs, at most
-MAX_TRIES times. By hand:  python3 sbr_backfill.py [--batch N]
+MAX_TRIES times; a page with no games is read a second time before it counts as a day without games. By hand:  python3 sbr_backfill.py [--batch N]
 
 Writes (sbr/history/):
   books.csv  one row per game and book: date, game_id, start_utc, away, home, away_score, home_score, status,
@@ -120,8 +120,10 @@ def main():
     os.makedirs(OUT, exist_ok=True)
     batch = int(sys.argv[sys.argv.index("--batch") + 1]) if "--batch" in sys.argv else BATCH
     D = read_dates()
-    todo = [d for d in all_dates()
-            if D.get(d, {}).get("status") not in ("done", "empty") and int(D.get(d, {}).get("tries") or 0) < MAX_TRIES]
+    def wanted(r):                                        # failed: up to MAX_TRIES; no games on the page: read twice
+        st, tries = r.get("status", ""), int(r.get("tries") or 0)
+        return st != "done" and (tries < 2 if st == "empty" else tries < MAX_TRIES)
+    todo = [d for d in all_dates() if wanted(D.get(d, {}))]
     if not todo:
         print("backfill complete: nothing to do")
         return 0
@@ -153,7 +155,7 @@ def main():
         time.sleep(GAP)
     write_dates(D)
     rebuild_games()
-    left = sum(1 for d in all_dates() if D.get(d, {}).get("status") not in ("done", "empty"))
+    left = sum(1 for d in all_dates() if wanted(D.get(d, {})))
     print(f"read {n} dates; {left} left")
     return 0
 
