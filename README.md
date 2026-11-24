@@ -16,3 +16,9 @@ Nothing else is stored here.
 line gets a first-seen time. Grading data only: it tells whether the opener came out before or after the model's
 night price. It is never a model input. Raw pages are kept for 2 days; `sbr/snapshots.csv` keeps one row per game
 per snapshot.
+
+## Player-prop snapshots (added Nov 24 2026)
+`props_snap.py` saves scoresandodds.com's prop pages (points, rebounds, assists, threes and the four combos) three
+times a day: morning (11 AM-2 PM ET), afternoon (4-6 PM) and evening (6:40-8 PM). Each row in `props/snapshots.csv`
+has the best over and best under across books with prices. Grading data only, for the NBA Edge props test; never a
+model input. Raw pages are kept for 2 days.

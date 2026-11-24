@@ -1,6 +1,0 @@
-name,url,status,bytes
-base,https://www.scoresandodds.com/nba/props,200,317525
-path_rebounds,https://www.scoresandodds.com/nba/props/rebounds,200,178268
-path_assists,https://www.scoresandodds.com/nba/props/assists,200,179828
-q_market,https://www.scoresandodds.com/nba/props?market=rebounds,200,317525
-q_type,https://www.scoresandodds.com/nba/props?type=rebounds,200,317525
