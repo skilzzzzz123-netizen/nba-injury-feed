@@ -52,8 +52,8 @@ def main():
         cnt = size = ""
         links = {}
         if status == 200 and body:
-            with gzip.open(os.path.join(OUT, f"{g}_odds.json.gz"), "wb", mtime=0) as f:
-                f.write(body)
+            with open(os.path.join(OUT, f"{g}_odds.json.gz"), "wb") as f:
+                f.write(gzip.compress(body, mtime=0))
             try:
                 j = json.loads(body); cnt, size = j.get("count", ""), j.get("pageSize", ""); links = prop_links(j, {})
             except ValueError:
@@ -66,8 +66,8 @@ def main():
             time.sleep(GAP)
             cnt = size = ""
             if status == 200 and body:
-                with gzip.open(os.path.join(OUT, f"{g}_props_{pid}.json.gz"), "wb", mtime=0) as f:
-                    f.write(body)
+                with open(os.path.join(OUT, f"{g}_props_{pid}.json.gz"), "wb") as f:
+                    f.write(gzip.compress(body, mtime=0))
                 try:
                     j = json.loads(body); cnt, size = j.get("count", ""), j.get("pageSize", "")
                 except ValueError:

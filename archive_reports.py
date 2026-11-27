@@ -136,8 +136,8 @@ def main():
                 os.makedirs(folder, exist_ok=True)
                 buf = io.StringIO()
                 w = csv.writer(buf); w.writerow(["report_date", "report_time_et", "url", "page", "line_no", "text"]); w.writerows(rows)
-                with gzip.open(os.path.join(folder, f"{h:02d}30.csv.gz"), "wb", compresslevel=9, mtime=0) as f:
-                    f.write(buf.getvalue().encode("utf-8"))
+                with open(os.path.join(folder, f"{h:02d}30.csv.gz"), "wb") as f:
+                    f.write(gzip.compress(buf.getvalue().encode("utf-8"), compresslevel=9, mtime=0))
                 rec.update(status="saved", url=BASE + got[0], bytes=len(got[1]), lines=len(rows)); n_saved += 1
         if rec["status"] != "saved" and tries >= MAX_TRIES:
             rec["status"] = "missing"
