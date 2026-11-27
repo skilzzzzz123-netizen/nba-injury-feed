@@ -8,7 +8,7 @@ on:
     - cron: "13,43 * * * *"
   workflow_dispatch:
   push:
-    paths: ["archive_reports.py", "espn_probe.py", "espn_backfill.py", "archive/games.csv", ".github/workflows/archive.yml"]
+    paths: ["archive_reports.py", "espn_backfill.py", "archive/games.csv", ".github/workflows/archive.yml"]
 
 permissions:
   contents: write
@@ -31,21 +31,12 @@ jobs:
       - name: Install the PDF reader (pypdf, as fetch.yml)
         run: python -m pip install --disable-pip-version-check "pypdf==6.17.0"
 
-      - name: One-off ESPN probe (only on a push; never fails the run)
+      - name: Past injury reports, then ESPN prices with the time that is left (never fails the run)
         run: |
-          if [ "${{ github.event_name }}" = "push" ] && [ -f espn_probe.py ]; then python espn_probe.py || echo "probe failed"; fi
-
-      - name: ESPN prices for past games (once the script exists; never fails the run)
-        run: |
-          if [ -f espn_backfill.py ]; then
-            if [ "${{ github.event_name }}" = "push" ]; then python espn_backfill.py --limit-seconds 150 || echo "espn backfill failed"
-            else python espn_backfill.py || echo "espn backfill failed"; fi
-          fi
-
-      - name: Past injury reports (a short batch on a push, a full one on the schedule)
-        run: |
-          if [ "${{ github.event_name }}" = "push" ]; then python archive_reports.py --limit-seconds 120 || echo "report archive failed"
-          else python archive_reports.py || echo "report archive failed"; fi
+          if [ "${{ github.event_name }}" = "push" ]; then R=120; T=420; else R=1980; T=2940; fi
+          python archive_reports.py --limit-seconds $R || echo "report archive failed"
+          LEFT=$(( T - SECONDS )); if [ $LEFT -lt 60 ]; then LEFT=60; fi
+          python espn_backfill.py --limit-seconds $LEFT || echo "espn backfill failed"
 
       - name: Commit and push if something changed
         run: |
